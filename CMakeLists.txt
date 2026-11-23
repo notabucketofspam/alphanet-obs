@@ -4,6 +4,8 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/common/bootstrap.cmake" NO_POLICY_SCO
 
 project(${_name} VERSION ${_version})
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 option(ENABLE_FRONTEND_API "Use obs-frontend-api for UI functionality" OFF)
 option(ENABLE_QT "Use Qt functionality" OFF)
 option(ENABLE_TESTS "Build standalone unit tests" ON)
@@ -58,4 +60,7 @@ if(ENABLE_TESTS)
   add_executable(test-packer tests/test-packer.cpp)
   target_include_directories(test-packer PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
   add_test(NAME test-packer COMMAND test-packer)
+  set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" PROPERTY VS_STARTUP_PROJECT test-packer)
+else()
+  set_property(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" PROPERTY VS_STARTUP_PROJECT ${CMAKE_PROJECT_NAME})
 endif()

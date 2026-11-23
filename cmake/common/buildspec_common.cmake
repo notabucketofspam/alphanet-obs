@@ -48,18 +48,53 @@ endfunction()
 
 # _setup_obs_studio: Create obs-studio build project, then build libobs and obs-frontend-api
 function(_setup_obs_studio)
+  if(
+    EXISTS "${dependencies_dir}/cmake/libobsConfig.cmake"
+    AND EXISTS "${dependencies_dir}/cmake/obs-frontend-apiConfig.cmake"
+    AND DEFINED _obs_cached_hash
+    AND _obs_cached_hash STREQUAL _obs_expected_hash
+  )
+    message(STATUS "Build OBS sources (${arch}) - skipped")
+    return()
+  endif()
+
   if(NOT libobs_DIR)
     set(_is_fresh --fresh)
   endif()
 
   if(OS_WINDOWS)
-    set(_cmake_generator "${CMAKE_GENERATOR}")
-    set(_cmake_arch "-A ${arch},version=${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}")
+    if(CMAKE_GENERATOR MATCHES "^Visual Studio ")
+      set(_cmake_generator "${CMAKE_GENERATOR}")
+      if(CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION)
+        set(_cmake_arch "-A ${arch},version=${CMAKE_VS_WINDOWS_TARGET_PLATFORM_VERSION}")
+      else()
+        set(_cmake_arch "-A ${arch}")
+      endif()
+    else()
+      if(CMAKE_VERSION VERSION_GREATER_EQUAL 4.2 AND EXISTS "C:/Program Files/Microsoft Visual Studio/18")
+        set(_cmake_generator "Visual Studio 18 2026")
+      else()
+        set(_cmake_generator "Visual Studio 17 2022")
+      endif()
+      set(_cmake_arch "-A ${arch}")
+    endif()
     set(_cmake_extra "-DCMAKE_SYSTEM_VERSION=${CMAKE_SYSTEM_VERSION} -DCMAKE_ENABLE_SCRIPTING=OFF")
   elseif(OS_MACOS)
     set(_cmake_generator "Xcode")
     set(_cmake_arch "-DCMAKE_OSX_ARCHITECTURES:STRING='arm64;x86_64'")
     set(_cmake_extra "-DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}")
+  endif()
+
+  if(EXISTS "${dependencies_dir}/${_obs_destination}/build_${arch}/CMakeCache.txt")
+    file(STRINGS "${dependencies_dir}/${_obs_destination}/build_${arch}/CMakeCache.txt" _obs_cache_gen REGEX
+         "^CMAKE_GENERATOR:INTERNAL="
+    )
+    if(_obs_cache_gen)
+      string(REPLACE "CMAKE_GENERATOR:INTERNAL=" "" _obs_cache_gen "${_obs_cache_gen}")
+      if(NOT _obs_cache_gen STREQUAL _cmake_generator)
+        set(_is_fresh --fresh)
+      endif()
+    endif()
   endif()
 
   message(STATUS "Configure ${label} (${arch})")
@@ -213,6 +248,8 @@ function(_check_dependencies)
     elseif(dependency STREQUAL obs-studio)
       set(_obs_version ${version})
       set(_obs_destination "${destination}")
+      set(_obs_expected_hash "${hash}")
+      set(_obs_cached_hash "${OBS_DEPENDENCY_${dependency}_${arch}_HASH}")
       list(APPEND CMAKE_PREFIX_PATH "${dependencies_dir}")
     endif()
 

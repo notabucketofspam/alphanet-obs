@@ -56,15 +56,41 @@
         "lhs": "${hostSystemName}",
         "rhs": "Windows"
       },
-      "generator": "Visual Studio 17 2022",
-      "architecture": "x64,version=10.0.22621",
+      "generator": "Visual Studio 18 2026",
+      "architecture": "x64",
+      "warnings": {"dev": true, "deprecated": true}
+    },
+    {
+      "name": "windows-ninja-x64",
+      "displayName": "Windows x64 (Ninja)",
+      "description": "Build for Windows x64 using Ninja",
+      "inherits": ["template"],
+      "binaryDir": "${sourceDir}/build_ninja_x64",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "generator": "Ninja",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl.exe",
+        "CMAKE_CXX_COMPILER": "cl.exe",
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      },
       "warnings": {"dev": true, "deprecated": true}
     },
     {
       "name": "windows-ci-x64",
       "inherits": ["windows-x64"],
+      "hidden": true,
       "displayName": "Windows x64 CI build",
       "description": "Build for Windows x64 on CI",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64,version=10.0.22621",
       "cacheVariables": {
         "CMAKE_COMPILE_WARNING_AS_ERROR": true
       }
@@ -117,8 +143,29 @@
     {
       "name": "windows-x64",
       "configurePreset": "windows-x64",
-      "displayName": "Windows x64",
-      "description": "Windows build for x64",
+      "displayName": "Windows x64 (RelWithDebInfo)",
+      "description": "Windows RelWithDebInfo build for x64",
+      "configuration": "RelWithDebInfo"
+    },
+    {
+      "name": "windows-x64-debug",
+      "configurePreset": "windows-x64",
+      "displayName": "Windows x64 (Debug)",
+      "description": "Windows Debug build for x64",
+      "configuration": "Debug"
+    },
+    {
+      "name": "windows-x64-release",
+      "configurePreset": "windows-x64",
+      "displayName": "Windows x64 (Release)",
+      "description": "Windows Release build for x64",
+      "configuration": "Release"
+    },
+    {
+      "name": "windows-ninja-x64",
+      "configurePreset": "windows-ninja-x64",
+      "displayName": "Windows x64 (Ninja)",
+      "description": "Windows Ninja build for x64",
       "configuration": "RelWithDebInfo"
     },
     {
@@ -141,6 +188,35 @@
       "displayName": "Ubuntu x86_64 CI",
       "description": "Ubuntu CI build for x86_64",
       "configuration": "RelWithDebInfo"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "windows-x64",
+      "configurePreset": "windows-x64",
+      "displayName": "Windows x64 (RelWithDebInfo)",
+      "configuration": "RelWithDebInfo",
+      "output": {"outputOnFailure": true}
+    },
+    {
+      "name": "windows-x64-debug",
+      "configurePreset": "windows-x64",
+      "displayName": "Windows x64 (Debug)",
+      "configuration": "Debug",
+      "output": {"outputOnFailure": true}
+    },
+    {
+      "name": "windows-x64-release",
+      "configurePreset": "windows-x64",
+      "displayName": "Windows x64 (Release)",
+      "configuration": "Release",
+      "output": {"outputOnFailure": true}
+    },
+    {
+      "name": "windows-ninja-x64",
+      "configurePreset": "windows-ninja-x64",
+      "displayName": "Windows x64 (Ninja)",
+      "output": {"outputOnFailure": true}
     }
   ]
 }
