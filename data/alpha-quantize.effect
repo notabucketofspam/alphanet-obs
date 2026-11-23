@@ -1,0 +1,79 @@
+uniform float4x4 ViewProj;
+uniform texture2d image;
+
+uniform float4 color_off;
+uniform float4 color_red;
+uniform float4 color_green;
+uniform float4 color_amber;
+
+sampler_state point_sampler {
+	Filter   = Point;
+	AddressU = Clamp;
+	AddressV = Clamp;
+};
+
+struct VertData {
+	float4 pos : POSITION;
+	float2 uv  : TEXCOORD0;
+};
+
+VertData VSDefault(VertData v_in)
+{
+	VertData vert_out;
+	vert_out.pos = mul(float4(v_in.pos.xyz, 1.0), ViewProj);
+	vert_out.uv  = v_in.uv;
+	return vert_out;
+}
+
+float4 PSAlphaQuantize(VertData v_in) : TARGET
+{
+	float col = clamp(floor(v_in.uv.x * 120.0), 0.0, 119.0);
+	float row = clamp(floor(v_in.uv.y * 56.0), 0.0, 55.0);
+
+	float vx = col + floor((col + 0.5) / 5.0);
+	float vy = row + floor((row + 0.5) / 7.0) * 4.0;
+	float2 sample_uv = (float2(vx, vy) + 0.5) / float2(143.0, 84.0);
+
+	float3 rgb = image.Sample(point_sampler, sample_uv).rgb;
+
+	float3 d_off   = rgb - color_off.rgb;
+	float3 d_red   = rgb - color_red.rgb;
+	float3 d_green = rgb - color_green.rgb;
+	float3 d_amber = rgb - color_amber.rgb;
+
+	float best_dist = dot(d_off, d_off);
+	float led_red = 0.0;
+	float led_green = 0.0;
+
+	float dist_red = dot(d_red, d_red);
+	if (dist_red < best_dist) {
+		best_dist = dist_red;
+		led_red = 1.0;
+		led_green = 0.0;
+	}
+
+	float dist_green = dot(d_green, d_green);
+	if (dist_green < best_dist) {
+		best_dist = dist_green;
+		led_red = 0.0;
+		led_green = 1.0;
+	}
+
+	float dist_amber = dot(d_amber, d_amber);
+	if (dist_amber < best_dist) {
+		led_red = 1.0;
+		led_green = 1.0;
+	}
+
+	return float4(led_red, led_green, 0.0, 1.0);
+}
+
+technique Draw
+{
+	pass
+	{
+		vertex_shader = VSDefault(v_in);
+		pixel_shader  = PSAlphaQuantize(v_in);
+	}
+}
+
