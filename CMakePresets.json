@@ -86,7 +86,6 @@
     {
       "name": "windows-ci-x64",
       "inherits": ["windows-x64"],
-      "hidden": true,
       "displayName": "Windows x64 CI build",
       "description": "Build for Windows x64 on CI",
       "generator": "Visual Studio 17 2022",
