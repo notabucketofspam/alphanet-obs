@@ -1,0 +1,7 @@
+Implement the native C++ OBS Studio Video Filter plugin specified in SPEC.md within this obs-plugintemplate repository.
+
+Inspect the existing template files (CMakeLists.txt, CMakePresets.json, buildspec.json, and src/) first to preserve the template's CMake presets and cross-platform CI structure.
+
+Complete the task by verifying both:
+1. Build and run the standalone unit tests (tests/test-packer.cpp) and confirm all assertions pass.
+2. Configure and build the Windows x64 OBS plugin target using the repository's CMake preset with zero errors.

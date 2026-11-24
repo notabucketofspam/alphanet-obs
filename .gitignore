@@ -26,3 +26,5 @@
 /cmake/.CMakeBuildNumber
 
 !/tests
+!/prompt.txt
+!/SPEC.md
